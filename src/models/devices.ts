@@ -8,7 +8,7 @@ export interface Device {
     parser_id: string | null;
     location?: Point;
     tags: Tag[];
-    interfaces: DeviceInterface;
+    interfaces: DeviceInterface[];
 }
 
 export interface Point {
