@@ -1,19 +1,19 @@
+import { Point } from "./devices";
+
 export interface MergeOptions {
     filter: string;
     merge_expr: { [key: string]: string }
 }
 
-export interface Reading {
-    id: string;
-    device_id: string;
-    transceived_at: Date;
-    payload_encoding: string;
-    payload: unknown;
-    packet_type: string;
-    meta: null | unknown;
-    is_meta: boolean;
-    interface_id: string;
-    inserted_at: Date;
+export interface Reading<T = any> {
+    parser_id: string
+    device_id: string
+    packet_id: string
+    location: Point | null
+    inserted_at: Date
+    measured_at: Date
+    data: T,
+    id: string
 }
 
 export interface UpdatedReadings {
