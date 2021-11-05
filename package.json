@@ -1,6 +1,6 @@
 {
   "name": "@lux-software/element-iot-client",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",
   "files": [

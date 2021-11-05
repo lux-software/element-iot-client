@@ -240,25 +240,28 @@ export class ElementIoTClient {
         return (await this.client.post(`api/v1/devices/${deviceId}/actions/send_down_frame`, request)).data
     }
 
+    async sendDownFrameByDeviceEUI(deviceEUI: string, request: ActionRequest): Promise<ActionResponse> {
+        return (await this.client.post(`api/v1/devices/by-eui/${deviceEUI}/actions/send_down_frame`, request)).data
+    }
+
+
     async getAction(deviceId: string, actionId: string): Promise<ActionResponse> {
         return (await this.client.get(`api/v1/devices/${deviceId}/actions/${actionId}`)).data
     }
 
     async createTag(name: string, opts: CreateTagOpts | null = null): Promise<Response<Tag>> {
-        const request = {
+        return (await this.client.post(`api/v1/tags`, {
             tag: {
                 name: name,
                 ...opts
             }
-        }
-        return (await this.client.post(`api/v1/tags`, request)).data
+        })).data
     }
 
     async createTagPath(name: string): Promise<Response<Tag>> {
-        const request = {
+        return (await this.client.post(`api/v1/tags/mkdir`, {
             name: name
-        }
-        return (await this.client.post(`api/v1/tags/mkdir`, request)).data
+        })).data
     }
 
     async deleteTag(tagId: string): Promise<Response<unknown>> {
