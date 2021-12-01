@@ -51,15 +51,17 @@ export class ElementIoTClient {
         this.client.interceptors.response.use(async (response) => {
             const rateLimitRemaining = response.headers['x-ratelimit-remaining']
             const rateLimitReset = response.headers['x-ratelimit-reset']
-            this.log(`Rate limit remaining ${rateLimitRemaining}`)
-            this.log(`Rate limit reset ${rateLimitReset}`)
+            if (options.logRateLimits) {
+                this.log(`Rate limit remaining ${rateLimitRemaining}`)
+                this.log(`Rate limit reset ${rateLimitReset}`)
+            }
             that.rateLimitRemaining = rateLimitRemaining || 5
             that.rateLimitReset = rateLimitReset || 5000
             return response;
         });
         this.client.interceptors.request.use(async (config) => {
-            if (that.rateLimitRemaining <= 5) {
-                this.log(`Rate limit reset in ${that.rateLimitReset}`)
+            if (that.rateLimitRemaining <= 3) {
+                options.logRateLimits && this.log(`Rate limit reset in ${that.rateLimitReset}`)
                 await new Promise(resolve => setTimeout(resolve, that.rateLimitReset * 2))
             }
             return config;
