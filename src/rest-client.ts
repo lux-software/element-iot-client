@@ -22,7 +22,6 @@ export class ElementIoTClient {
             (!options.url.startsWith('https') && !options.url.startsWith('http'))) {
             throw new Error("serviceUrl must start with https")
         }
-
         this.log = options.log || console.log
         this.error = options.error || console.error
         this.rateLimitRemaining = options.rateLimit?.remaining || 50
@@ -49,8 +48,8 @@ export class ElementIoTClient {
         });
         const that = this
         this.client.interceptors.response.use(async (response) => {
-            const rateLimitRemaining = response.headers['x-ratelimit-remaining']
-            const rateLimitReset = response.headers['x-ratelimit-reset']
+            const rateLimitRemaining = Number(response.headers['x-ratelimit-remaining'])
+            const rateLimitReset =  Number(response.headers['x-ratelimit-reset'])
             if (options.logRateLimits) {
                 this.log(`Rate limit remaining ${rateLimitRemaining}`)
                 this.log(`Rate limit reset ${rateLimitReset}`)
@@ -128,14 +127,6 @@ export class ElementIoTClient {
         }
     }
 
-    async getPacketsChunked(deviceId: string, onChunk: (chunk: Packet[]) => Promise<void>, options?: RequestOptions): Promise<void> {
-        return this.paginateChunked<Packet[]>(`devices/${deviceId}/packets`, onChunk, options)
-    }
-
-    async getReadingsChunked(deviceId: string, onChunk: (chunk: Reading[]) => Promise<void>, options?: RequestOptions): Promise<void> {
-        return this.paginateChunked<Reading[]>(`devices/${deviceId}/readings`, onChunk, options)
-    }
-
     async getReadings(deviceId: string, options?: RequestOptions): Promise<Reading[]> {
         if (options?.limit && options?.limit <= 100) {
             return (await this.client.get(`api/v1/devices/${deviceId}/readings`, { params: this.createParams(options) })).data.body
@@ -169,6 +160,10 @@ export class ElementIoTClient {
             params['with_profile'] = options.withProfile
         }
 
+        if (options.after) {
+            params['after'] = options.after
+        }
+
         return params
     }
 
@@ -187,22 +182,6 @@ export class ElementIoTClient {
         } while (retrieveAfterId)
         return values
 
-    }
-    private async paginateChunked<T>(resource: string, onChunk: (chunk: T) => Promise<void>, options?: RequestOptions) {
-        let retrieveAfterId: string | undefined | null = options?.retrieveAfterId || undefined
-        do {
-            const params = this.createParams({
-                limit: 100,
-                ...options,
-                retrieveAfterId
-            })
-            const response = await this.client.get<Response<T>>(`api/v1/${resource}`, { params })
-            if ((response.data.body as any).length > 0) {
-                await onChunk(response.data.body)
-            }
-
-            retrieveAfterId = response.data.retrieve_after_id
-        } while (retrieveAfterId !== undefined)
     }
 
     async createDevice(name: string, tagId: string): Promise<Response<Device>> {

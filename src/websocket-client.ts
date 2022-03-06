@@ -1,8 +1,19 @@
 import WebSocket from 'ws'
 import { EventEmitter } from 'events'
 import { ClientOptions } from './models/api'
+import TypedEmitter from "typed-emitter"
+import { WSPacket, WSReading } from './models/ws'
 
-export class ElementIoTClientWS extends EventEmitter {
+
+type MessageEvents = {
+    open: () => void
+    close: () => void
+    error: (error: Error) => void
+    packet: (packet: WSPacket) => void
+    reading: (reading: WSReading) => void
+}
+
+export class ElementIoTClientWS extends (EventEmitter as new () => TypedEmitter<MessageEvents>) {
 
     private apiKey: string
     private url: string
@@ -51,9 +62,9 @@ export class ElementIoTClientWS extends EventEmitter {
 
                 const data = JSON.parse(messageString)[0]
                 if (data.event === 'reading_added') {
-                    this.emit('readings', { ...data.body })
+                    this.emit('reading', { ...data.body })
                 } else if (data.event === 'packet_added') {
-                    this.emit('packets', { ...data.body })
+                    this.emit('packet', { ...data.body })
                 }
             }
         } catch (error) {

@@ -6,6 +6,7 @@ export interface RequestOptions {
     retrieveAfterId?: null | string;
     filter?: string;
     withProfile?: boolean
+    after?: string
 }
 
 export interface Response<T> {
