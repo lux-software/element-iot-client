@@ -51,15 +51,17 @@ export class ElementIoTClient {
         this.client.interceptors.response.use(async (response) => {
             const rateLimitRemaining = response.headers['x-ratelimit-remaining']
             const rateLimitReset = response.headers['x-ratelimit-reset']
-            this.log(`Rate limit remaining ${rateLimitRemaining}`)
-            this.log(`Rate limit reset ${rateLimitReset}`)
+            if (options.logRateLimits) {
+                this.log(`Rate limit remaining ${rateLimitRemaining}`)
+                this.log(`Rate limit reset ${rateLimitReset}`)
+            }
             that.rateLimitRemaining = rateLimitRemaining || 5
             that.rateLimitReset = rateLimitReset || 5000
             return response;
         });
         this.client.interceptors.request.use(async (config) => {
-            if (that.rateLimitRemaining <= 5) {
-                this.log(`Rate limit reset in ${that.rateLimitReset}`)
+            if (that.rateLimitRemaining <= 3) {
+                options.logRateLimits && this.log(`Rate limit reset in ${that.rateLimitReset}`)
                 await new Promise(resolve => setTimeout(resolve, that.rateLimitReset * 2))
             }
             return config;
@@ -240,25 +242,28 @@ export class ElementIoTClient {
         return (await this.client.post(`api/v1/devices/${deviceId}/actions/send_down_frame`, request)).data
     }
 
+    async sendDownFrameByDeviceEUI(deviceEUI: string, request: ActionRequest): Promise<ActionResponse> {
+        return (await this.client.post(`api/v1/devices/by-eui/${deviceEUI}/actions/send_down_frame`, request)).data
+    }
+
+
     async getAction(deviceId: string, actionId: string): Promise<ActionResponse> {
         return (await this.client.get(`api/v1/devices/${deviceId}/actions/${actionId}`)).data
     }
 
     async createTag(name: string, opts: CreateTagOpts | null = null): Promise<Response<Tag>> {
-        const request = {
+        return (await this.client.post(`api/v1/tags`, {
             tag: {
                 name: name,
                 ...opts
             }
-        }
-        return (await this.client.post(`api/v1/tags`, request)).data
+        })).data
     }
 
     async createTagPath(name: string): Promise<Response<Tag>> {
-        const request = {
+        return (await this.client.post(`api/v1/tags/mkdir`, {
             name: name
-        }
-        return (await this.client.post(`api/v1/tags/mkdir`, request)).data
+        })).data
     }
 
     async deleteTag(tagId: string): Promise<Response<unknown>> {

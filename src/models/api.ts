@@ -17,6 +17,7 @@ export interface Response<T> {
 
 export interface ClientOptions {
     rateLimit?: RateLimit;
+    logRateLimits?: boolean
     apiKey: string;
     url?: string;
     log?: (...data: any[]) => void
