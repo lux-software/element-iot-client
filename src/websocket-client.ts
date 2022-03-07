@@ -1,19 +1,8 @@
 import WebSocket from 'ws'
 import { EventEmitter } from 'events'
 import { ClientOptions } from './models/api'
-import TypedEmitter from "typed-emitter"
-import { WSPacket, WSReading } from './models/ws'
 
-
-type MessageEvents = {
-    open: () => void
-    close: () => void
-    error: (error: Error) => void
-    packet: (packet: WSPacket) => void
-    reading: (reading: WSReading) => void
-}
-
-export class ElementIoTClientWS extends (EventEmitter as new () => TypedEmitter<MessageEvents>) {
+export class ElementIoTClientWS extends EventEmitter {
 
     private apiKey: string
     private url: string
